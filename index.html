@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glassmorphism Example</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel='stylesheet'
+        type='text/css'>
+    <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
+
+
+</head>
+
+<body>
+    <div class="container-fluid px-1 px-sm-3 py-5 mx-auto">
+        <div class="row d-flex justify-content-center">
+            <div class="row card0">
+                <div class="card1 col-lg-8 col-md-7">
+                    <small>B. weather</small>
+                    <div class="text-center">
+                        <img class="image mt-5" src="https://i.imgur.com/M8VyA2h.png">
+                    </div>
+                    <div class="row px-3 mt-3 mb-3" id="body">
+
+                    </div>
+                </div>
+                <div class="card2 col-lg-4 col-md-5">
+                    <div class="row px-3">
+
+                        <form id="weather_form"
+                            style="width: 100%; border:0px solid black; display: flex;flex-direction: row;">
+                            <input type="text" name="location" placeholder="Another location" id="cityform"
+                                class="mb-5">
+                            <button type="submit" class="fa fa-search mb-5 mr-0 text-center"
+                                style="border: 0px solid black;"></button>
+                        </form>
+                    </div>
+                    <div class="mr-5">
+                        <p class="light-text suggestion" data-term="Birmingham">Birmingham</p>
+                        <p class="light-text suggestion" data-term="Manchester">Manchester</p>
+                        <p class="light-text suggestion" data-term="New York">New York</p>
+                        <p class="light-text suggestion" data-term="California">California</p>
+
+                        <div class="line my-5"></div>
+
+                        <p>Weather Details</p>
+                        <div class="row px-3">
+                            <p class="light-text">Cloudy</p>
+                            <p class="ml-auto" id="cloud">_ _%</p>
+                        </div>
+                        <div class="row px-3">
+                            <p class="light-text">Humidity</p>
+                            <p class="ml-auto" id="humidity">_ _%</p>
+                        </div>
+                        <div class="row px-3">
+                            <p class="light-text">Wind</p>
+                            <p class="ml-auto" id="wind">_ _m/s</p>
+                        </div>
+                        <div class="row px-3">
+                            <p class="light-text">Visibility</p>
+                            <p class="ml-auto" id="visibility">_ _m</p>
+                        </div>
+
+                        <div class="line mt-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function getweather(city) {
+            const apiKey = '24d1f636a23f0df8c1f81df52f404817';
+            $.ajax({
+                url: `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`,
+                method: 'GET',
+                success: function (data) {
+                    if (data.weather && Array.isArray(data.weather)) {
+                        // Extract values from the weather array
+                        data.weather.forEach(item => {
+                            const mainValue = item.main;
+                            const iconMap = {
+                                "Clear": "fas fa-sun",
+                                "Clouds": "fas fa-cloud",
+                                "Rain": "fas fa-cloud-rain",
+                                "Snow": "fas fa-snowflake",
+                                "Mist": "fas fa-smog",
+                                "Drizzle": "fas fa-cloud-drizzle",
+                                "Thunderstorm": "fas fa-bolt"
+                            };
+                            const iconClass = iconMap[mainValue] || "fas fa-question";
+                            const timezoneOffset = data.timezone;
+                            const localDateTime = new Date((Date.now() + timezoneOffset * 1000)).toLocaleString();
+                            const options = {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                weekday: 'long',
+                                year: '2-digit',
+                                month: 'short',
+                                day: '2-digit'
+                            };
+                            const formattedDateTime = localDateTime.toLocaleString('en-US', options);
+
+                            // Separate the time and date
+                            const [time, date] = formattedDateTime.split(', ');
+                            const formattedOutput = `${time} - ${date}`;
+                            const weather = `
+                   <h1 class="large-font mr-3">${data.main.temp}&#176;</h1>
+                        <div class="d-flex flex-column mr-3">
+                            <h2 class="mt-3 mb-0">${data.name}</h2>
+                            <small>${formattedOutput}</small>
+                        </div>
+                        <div class="d-flex flex-column text-center">
+                            <h3 class="${iconClass} mt-4"></h3>
+                            <small>${mainValue}</small>
+                        </div>
+                   
+                    `;
+                            const cloud = data.clouds.all + '%';
+                            const humidity = data.main.humidity + '%';
+                            const wind = data.wind.speed + 'm/s';
+                            const visibility = data.visibility + 'm';
+
+                            $('#body').html(weather);
+                            $('#cloud').html(cloud);
+                            $('#humidity').html(humidity);
+                            $('#wind').html(wind);
+                            $('#visibility').html(visibility);
+                        });
+                    }
+
+
+                },
+                error: function (error) {
+                    const weather = `
+                   <h1 class="large-font mr-3">${data.main.temp}&#176;</h1>
+                        <div class="d-flex flex-column mr-3">
+                            <h2 class="mt-3 mb-0">${data.name}</h2>
+                            <small>10:36 - Tuesday, 22 Oct '19</small>
+                        </div>
+                        <div class="d-flex flex-column text-center">
+                            <h3 class="${iconClass} mt-4"></h3>
+                            <small>${mainValue}</small>
+                        </div>
+                   
+                    `;
+
+                    $('#body').html(weather);
+                }
+
+            })
+        }
+        getweather('lagos');
+
+        $(document).ready(function () {
+            $('#weather_form').on('submit', function (event) {
+                event.preventDefault();
+                const city = $('#cityform').val();
+                console.log(city)
+                getweather(city);
+
+            });
+        });
+        $(document).ready(function () {
+            $('.suggestion').on('click', function () {
+                const searchTerm = $(this).data('term'); // Get the clicked term
+                console.log(searchTerm)
+                getweather(searchTerm);
+
+            });
+        });
+    </script>
+
+</body>
+
+</html>
+<!--DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Weather App</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
+    <script src='main.js'></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+
+<body>
+    <!--div id="body"></div>
+    <form id="weather_form">
+        <input type="text" id="cityform">
+        <button type="submit"> submit</button>
+    </form>
+
+
+    <div class="contain">
+        <div class="left" id="body">
+
+        </div>
+        <div class="right">
+            <form id="weather_form">
+                <!--input type="text" id="cityform">                <button type="submit" class="btu" id="click"> <svg viewBox="0 0 512 512" height="2em"
+                        xmlns="http://www.w3.org/2000/svg" class="search_icon">
+                        <path
+                            d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z">
+                        </path>
+                    </svg></button>
+            </form>
+
+        </div>
+    </div>
+    <script>
+
+
+    </script>
+
+    <script>
+        function getweather(city) {
+            const apiKey = '24d1f636a23f0df8c1f81df52f404817';
+            $.ajax({
+                url: `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`,
+                method: 'GET',
+                success: function (data) {
+                    const weather = `
+                    <div class="info">
+                <div id="temp" class="info-text temp">${data.main.temp}° </div>
+                <div id="city" class="info-text">
+                    <div class="loc">${data.name}</div>
+                    <div class="time-date">time- date</div>
+                </div>
+                <div id="weather-icon" class="info-text weath">cloud</div>
+            </div>
+                   
+                    `;
+                    $('#body').html(weather);
+
+                },
+                error: function (error) {
+                    $('#body').html('<h1>this is the error</h1>');
+                }
+
+            })
+        }
+        getweather('lagos');
+
+        $(document).ready(function () {
+            $('#weather_form').on('submit', function (event) {
+                event.preventDefault();
+                const city = $('#cityform').val();
+                console.log(city)
+                getweather(city);
+
+            });
+        });
+
+    </script>
+</body>
+
+</html>
